@@ -63,14 +63,15 @@ def include(target: str) -> str | None:
         code = f.read()
         f.close()
 
-    preloads = parseRequires(getRequires(code))
+    blocks = []
+    [blocks.append(block) for block in re.findall(r"(\[=*?\[)", code) if block not in blocks]
+    block_escapes = "=" * len(blocks)
+     
+    code_preload = f"package.preload['{target}'] = load([{block_escapes}[{code}]{block_escapes}], \"@\" .. \"{path}\", nil, _ENV)"
 
-    return f"""{preloads}
--- {target}:
-package.preload['{target}'] = function()
-\t{code}
-end
-"""
+    require_preloads = parseRequires(getRequires(code))
+
+    return f"{require_preloads}\n-- {target}:\n{code_preload}"
 
 
 if __name__ == "__main__":
