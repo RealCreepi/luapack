@@ -6,7 +6,7 @@ import os, re
 included = []
 
 def getRequires(string: str) -> list:
-    matches = re.findall(r"require\(.*?\)", string)
+    matches = re.findall(r"require[\(\s*|\s)]*\"\S*?[\"|\s]", string)
     if matches == None: matches = []
 
     requires = []
@@ -18,7 +18,7 @@ def parseRequires(requires: list) -> str:
     preloads = []
     
     for require in requires:
-        target = require[len("require(\""):-(len("\")"))]
+        target = require[len("require"):].split('"')[1]
         if target in included:
             continue
 
@@ -52,6 +52,8 @@ def parseTarget(path: pathlib.Path) -> str:
 {code}"""
 
 def include(target: str) -> str | None:
+    print(f"INFO: including {target}")
+    
     path = target.replace(".", "/") + ".lua"
     if (not os.path.exists(path)) or os.path.isdir(path):
         return False
